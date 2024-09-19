@@ -1,3 +1,6 @@
+// This package implements a HTTP client in Go that consumes the datetime server.
+// It supports two content types: plain text and JSON.
+
 package client
 
 import (
@@ -11,7 +14,10 @@ import (
 	"github.com/cenkalti/backoff/v4"
 )
 
-func Client(w io.Writer, contenttype string) (int, []byte , error) {
+// Client sends a request to the datetime server with certain content type (plain text or json)
+// and print the output to the console.
+// and returns the response statuscode, the response body and any countered error.
+func Client(w io.Writer, contenttype string) (int, []byte, error) {
 	host := os.Getenv("SERVER_HOST")
 	port := os.Getenv("SERVER_PORT")
 	url := fmt.Sprintf("http://%s:%s/datetime", host, port)
@@ -36,10 +42,10 @@ func Client(w io.Writer, contenttype string) (int, []byte , error) {
 	expBackoff.MaxElapsedTime = 10 * time.Second
 	err := backoff.Retry(connection, expBackoff)
 	if err != nil {
-		return http.StatusServiceUnavailable, nil ,fmt.Errorf("error in server connection")
+		return http.StatusServiceUnavailable, nil, fmt.Errorf("error in server connection")
 	}
 	if response.StatusCode != http.StatusOK {
-		return response.StatusCode, nil,fmt.Errorf("status code not OK")
+		return response.StatusCode, nil, fmt.Errorf("status code not OK")
 	}
 
 	defer response.Body.Close()
@@ -52,12 +58,12 @@ func Client(w io.Writer, contenttype string) (int, []byte , error) {
 	if contenttype == "application/json" {
 		data, err = jsontype(body)
 		if err != nil {
-			return response.StatusCode, body,err
+			return response.StatusCode, body, err
 		}
 	}
 
 	fmt.Fprintln(w, data)
-	return response.StatusCode, body,nil
+	return response.StatusCode, body, nil
 }
 
 func texttype(body []byte) string {
