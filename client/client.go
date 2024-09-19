@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -12,10 +11,11 @@ import (
 	"github.com/cenkalti/backoff/v4"
 )
 
-func Client(w io.Writer, contenttype string) error {
+func Client(w io.Writer, contenttype string) (int, []byte , error) {
 	host := os.Getenv("SERVER_HOST")
 	port := os.Getenv("SERVER_PORT")
 	url := fmt.Sprintf("http://%s:%s/datetime", host, port)
+
 	var response *http.Response
 	connection := func() error {
 		c := http.Client{Timeout: time.Duration(1) * time.Second}
@@ -36,25 +36,28 @@ func Client(w io.Writer, contenttype string) error {
 	expBackoff.MaxElapsedTime = 10 * time.Second
 	err := backoff.Retry(connection, expBackoff)
 	if err != nil {
-		log.Fatal("failed to connect to datetime server:", err)
+		return http.StatusServiceUnavailable, nil ,fmt.Errorf("error in server connection")
+	}
+	if response.StatusCode != http.StatusOK {
+		return response.StatusCode, nil,fmt.Errorf("status code not OK")
 	}
 
 	defer response.Body.Close()
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		log.Fatal(err)
+		return response.StatusCode, body, err
 	}
 
 	data := texttype(body)
 	if contenttype == "application/json" {
 		data, err = jsontype(body)
 		if err != nil {
-			log.Fatal(err)
+			return response.StatusCode, body,err
 		}
 	}
 
 	fmt.Fprintln(w, data)
-	return nil
+	return response.StatusCode, body,nil
 }
 
 func texttype(body []byte) string {
@@ -68,18 +71,3 @@ func jsontype(body []byte) (string, error) {
 	}
 	return result["datetime"].(string), nil
 }
-
-// func connection(url, contenttype string) (*http.Response, error) {
-// 	c := http.Client{Timeout: time.Duration(1) * time.Second}
-// 	request, err := http.NewRequest("GET", url, nil)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	request.Header.Add("Content-Type", contenttype)
-// 	response, err := c.Do(request)
-
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return response, nil
-// }
