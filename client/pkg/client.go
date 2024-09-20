@@ -1,5 +1,6 @@
 // This package implements a HTTP client in Go that consumes the datetime server.
 // It supports two content types: plain text and JSON.
+// It has two public functions: Client and Inputhandler.
 
 package client
 
@@ -8,8 +9,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"time"
+	"flag"
+	"os"
 
 	"github.com/cenkalti/backoff/v4"
 )
@@ -17,10 +19,10 @@ import (
 // Client sends a request to the datetime server with certain content type (plain text or json)
 // and print the output to the console.
 // and returns the response statuscode, the response body and any countered error.
-func Client(w io.Writer, contenttype string) (int, []byte, error) {
-	host := os.Getenv("SERVER_HOST")
-	port := os.Getenv("SERVER_PORT")
-	url := fmt.Sprintf("http://%s:%s/datetime", host, port)
+func Client(w io.Writer, url, contenttype string) (int, []byte, error) {
+	// host := os.Getenv("SERVER_HOST")
+	// port := os.Getenv("SERVER_PORT")
+	// url := fmt.Sprintf("http://%s:%s/datetime", host, port)
 
 	var response *http.Response
 	connection := func() error {
@@ -66,6 +68,37 @@ func Client(w io.Writer, contenttype string) (int, []byte, error) {
 	return response.StatusCode, body, nil
 }
 
+// Inputhandler parses command line arguments and flags to set the url and content type
+// if no flags are provided, it uses the environment variables (SERVER_HOST , SERVER_PORT)
+// if no environment variables are provided, it uses default values
+// then returns the url and content type
+func Inputhandler() (string,  string) {
+	port := ""
+	flag.StringVar(&port, "p", "", "port number")
+	if port == "" {
+		port = os.Getenv("SERVER_PORT")
+		if port == "" {
+			port="8080"
+		}
+	}
+	host := ""
+	flag.StringVar(&host, "h", "", "host name")
+	if host == "" {
+		host = os.Getenv("SERVER_HOST")
+		if host == "" {
+			host="localhost"
+		}
+	}
+	contenttype := ""
+	flag.StringVar(&contenttype, "c", "application/json", "content type")
+	flag.Parse()
+	url := flag.Arg(0)
+	if url == "" {
+		url = "http://" + host + ":" + port + "/datetime"
+	}
+	return url,contenttype
+}
+
 func texttype(body []byte) string {
 	return string(body)
 }
@@ -77,3 +110,4 @@ func jsontype(body []byte) (string, error) {
 	}
 	return result["datetime"].(string), nil
 }
+
