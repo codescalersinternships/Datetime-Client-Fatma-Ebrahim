@@ -7,7 +7,7 @@ This package implements an HTTP client in Go that consumes the datetime server. 
 To install the client package, run the following command:
 
 ```shell
-go get github.com/codescalersinternships/Datetime-Client-Fatma-Ebrahim/client
+git clone https://github.com/codescalersinternships/Datetime-Client-Fatma-Ebrahim.git
 ```
 To install the needed dependencies:
 
