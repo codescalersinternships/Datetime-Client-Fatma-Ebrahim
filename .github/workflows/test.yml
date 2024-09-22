@@ -42,5 +42,17 @@ jobs:
             - name: Set up Go
               uses: actions/setup-go@v5
 
+            - name: Pull ginserver image
+              run: docker pull ginserver:latest
+
+            - name: Run ginserver image
+              run: docker run --name ginserver -d my-ginserver:latest
+
+            - name: Pull httpserver image
+              run: docker pull httpserver:latest
+
+            - name: Run httpserver image
+              run: docker run --name httpserver -d my-httpserver:latest
+
             - name: Test
               run: go test ./test
