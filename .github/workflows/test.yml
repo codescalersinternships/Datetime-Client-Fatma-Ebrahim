@@ -46,13 +46,13 @@ jobs:
               run: docker pull fatmaebrahim/ginserver
 
             - name: Run ginserver image
-              run: docker run --name ginserver -d fatmaebrahim/ginserver
+              run: docker run --name ginserver -p 8080:8080 -d fatmaebrahim/ginserver
 
             - name: Pull httpserver image
               run: docker pull fatmaebrahim/httpserver
 
             - name: Run httpserver image
-              run: docker run --name httpserver -d fatmaebrahim/httpserver
+              run: docker run --name httpserver -p 8000:8000 -d fatmaebrahim/httpserver
 
             - name: Test
               run: go test ./test
