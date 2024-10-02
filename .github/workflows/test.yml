@@ -1,0 +1,58 @@
+name: gotest
+on:
+    push:
+    pull_request:
+    
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up Go
+              uses: actions/setup-go@v5
+
+            - name: Build
+              run: go build main.go
+    
+    golangci:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up Go
+              uses: actions/setup-go@v5
+
+            - name: Format
+              run: go fmt ./...
+
+            - name: golangci-lint
+              uses: golangci/golangci-lint-action@v6
+              with:
+                version: v1.60
+
+    testing:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up Go
+              uses: actions/setup-go@v5
+
+            - name: Pull ginserver image
+              run: docker pull fatmaebrahim/ginserver
+
+            - name: Run ginserver image
+              run: docker run --name ginserver -p 8080:8080 -d fatmaebrahim/ginserver
+
+            - name: Pull httpserver image
+              run: docker pull fatmaebrahim/httpserver
+
+            - name: Run httpserver image
+              run: docker run --name httpserver -p 8000:8000 -d fatmaebrahim/httpserver
+
+            - name: Test
+              run: go test ./...
