@@ -25,7 +25,7 @@ var (
 // Client sends a request to the datetime server with certain content type (plain text or json)
 // and print the output to the console.
 // and returns the response statuscode, the response body and any countered error.
-func Client(w io.Writer, url, contenttype string) (int, []byte, error) {
+func GetDateTime(w io.Writer, url, contenttype string) (int, []byte, error) {
 	var response *http.Response
 	connection := func() error {
 		c := http.Client{Timeout: time.Duration(1) * time.Second}
@@ -64,9 +64,9 @@ func Client(w io.Writer, url, contenttype string) (int, []byte, error) {
 		return response.StatusCode, body, err
 	}
 
-	data := texttype(body)
+	data := string(body)
 	if contenttype == "application/json" {
-		data, err = jsontype(body)
+		data, err = parseJsonType(body)
 		if err != nil {
 			logger.Println("Failed to read response body", err)
 			return response.StatusCode, body, err
@@ -112,10 +112,7 @@ func Inputhandler() (string, string) {
 	return url, contenttype
 }
 
-func texttype(body []byte) string {
-	return string(body)
-}
-func jsontype(body []byte) (string, error) {
+func parseJsonType(body []byte) (string, error) {
 	var result map[string]interface{}
 	err := json.Unmarshal(body, &result)
 	if err != nil {

@@ -1,4 +1,4 @@
-package main
+package client
 
 import (
 	"bytes"
@@ -8,8 +8,6 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
-
-	client "github.com/codescalersinternships/Datetime-Client-Fatma-Ebrahim/pkg"
 )
 
 func TestClient(t *testing.T) {
@@ -18,7 +16,7 @@ func TestClient(t *testing.T) {
 		buffer := bytes.Buffer{}
 		contenttype := "application/json"
 
-		statuscode, result, err := client.Client(&buffer, url, contenttype)
+		statuscode, result, err := GetDateTime(&buffer, url, contenttype)
 		if err != nil {
 			t.Errorf("expected nil, got error %v", err)
 		}
@@ -34,7 +32,7 @@ func TestClient(t *testing.T) {
 	t.Run("Client with plain text type", func(t *testing.T) {
 		buffer := bytes.Buffer{}
 		contenttype := "plain text"
-		statuscode, result, err := client.Client(&buffer, url, contenttype)
+		statuscode, result, err := GetDateTime(&buffer, url, contenttype)
 		if err != nil {
 			t.Errorf("expected nil, got error %v", err)
 		}
@@ -64,7 +62,7 @@ func TestClientbyMock(t *testing.T) {
 		}))
 		defer server.Close()
 		buffer := bytes.Buffer{}
-		statuscode, _, err := client.Client(&buffer, server.URL, "application/json")
+		statuscode, _, err := GetDateTime(&buffer, server.URL, "application/json")
 		if err != nil {
 			t.Errorf("expected nil, got error %v", err)
 		}
